@@ -149,6 +149,23 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
     form.setValue("images", [...uploadedImages, ...urls]);
   };
   
+  // Handle inline image insertion
+  const insertImageInContent = (imageUrl: string) => {
+    // Get current cursor position
+    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const cursorPosition = textarea.selectionStart;
+    const textBefore = content.substring(0, cursorPosition);
+    const textAfter = content.substring(cursorPosition);
+    
+    // Insert image HTML tag at cursor position
+    const imageTag = `<img src="${imageUrl}" alt="Blog image" class="max-w-full h-auto my-4 rounded-md" />`;
+    const newContent = textBefore + imageTag + textAfter;
+    
+    setContent(newContent);
+  };
+  
   // Handle image removal
   const handleRemoveImage = (indexToRemove: number) => {
     const updatedImages = uploadedImages.filter((_, index) => index !== indexToRemove);
@@ -213,15 +230,61 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
             </label>
             <div className="border border-gray-300 rounded-md overflow-hidden">
               <div className="bg-gray-100 border-b border-gray-300 px-3 py-2 flex flex-wrap gap-2">
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-bold"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-italic"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-underline"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-link"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-list-ul"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-list-ol"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-quote-right"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-image"></i></button>
-                <button type="button" className="p-1 hover:bg-gray-200 rounded"><i className="fas fa-code"></i></button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Bold">
+                  <i className="fas fa-bold"></i>
+                </button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Italic">
+                  <i className="fas fa-italic"></i>
+                </button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Underline">
+                  <i className="fas fa-underline"></i>
+                </button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Link">
+                  <i className="fas fa-link"></i>
+                </button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Bullet List">
+                  <i className="fas fa-list-ul"></i>
+                </button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Numbered List">
+                  <i className="fas fa-list-ol"></i>
+                </button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Quote">
+                  <i className="fas fa-quote-right"></i>
+                </button>
+                <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Insert Code">
+                  <i className="fas fa-code"></i>
+                </button>
+                <div className="h-5 border-r border-gray-300 mx-1"></div>
+                {uploadedImages.length > 0 && (
+                  <div className="relative group">
+                    <button 
+                      type="button" 
+                      className="p-1 hover:bg-gray-200 rounded" 
+                      title="Insert Image"
+                    >
+                      <i className="fas fa-image"></i>
+                    </button>
+                    <div className="absolute left-0 top-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-2 w-48 hidden group-hover:block z-10">
+                      <p className="text-xs text-gray-500 mb-2">Insert an image:</p>
+                      <div className="max-h-48 overflow-y-auto">
+                        {uploadedImages.map((imageUrl, index) => (
+                          <div 
+                            key={index} 
+                            className="flex items-center p-1 hover:bg-gray-100 rounded cursor-pointer"
+                            onClick={() => insertImageInContent(imageUrl)}
+                          >
+                            <img 
+                              src={imageUrl} 
+                              alt={`Image ${index + 1}`} 
+                              className="w-8 h-8 object-cover rounded mr-2"
+                            />
+                            <span className="text-xs truncate">Image {index + 1}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <textarea
                 value={content}
@@ -263,19 +326,30 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
             {uploadedImages.length > 0 && (
               <div className="mt-4 grid grid-cols-3 gap-4">
                 {uploadedImages.map((imageUrl, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative group">
                     <img 
                       src={imageUrl} 
                       alt={`Blog image ${index + 1}`} 
                       className="w-full h-24 object-cover rounded"
                     />
-                    <button 
-                      type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                    >
-                      <i className="fas fa-times"></i>
-                    </button>
+                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                      <button 
+                        type="button"
+                        onClick={() => insertImageInContent(imageUrl)}
+                        className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs"
+                        title="Insert into content"
+                      >
+                        <i className="fas fa-plus"></i>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        className="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs"
+                        title="Remove image"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
