@@ -298,6 +298,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Media Routes
+  app.get("/api/media", (req, res) => {
+    try {
+      // Scan the uploads directory
+      const uploadsPath = path.resolve(process.cwd(), "dist/public/uploads");
+      
+      // Create directory if it doesn't exist (just in case)
+      if (!fs.existsSync(uploadsPath)) {
+        fs.mkdirSync(uploadsPath, { recursive: true });
+        return res.json([]);  // Return empty array for a new directory
+      }
+      
+      const files = fs.readdirSync(uploadsPath);
+      const mediaItems = files.map((filename, index) => {
+        const filePath = path.join(uploadsPath, filename);
+        const stats = fs.statSync(filePath);
+        const relativePath = `/uploads/${filename}`;
+        
+        return {
+          id: index + 1,
+          name: filename,
+          url: relativePath,
+          type: path.extname(filename).toLowerCase() === '.png' 
+            ? 'image/png' 
+            : path.extname(filename).toLowerCase() === '.gif'
+              ? 'image/gif'
+              : 'image/jpeg',
+          size: stats.size,
+          uploadedAt: stats.mtime
+        };
+      });
+      
+      res.json(mediaItems);
+    } catch (error) {
+      console.error("Error fetching media:", error);
+      res.status(500).json({ message: "Failed to fetch media items" });
+    }
+  });
+
   // Contact Form Route
   app.post("/api/contact", async (req, res) => {
     try {
@@ -313,6 +352,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Comments API Routes
+  app.get("/api/comments", (req, res) => {
+    // Normally, this would fetch from a database
+    // For now we'll return dummy data for the UI to use
+    const comments = [
+      {
+        id: 1,
+        author: "John Smith",
+        email: "john@example.com",
+        content: "Great article! This has been very helpful for our industrial project.",
+        blogPostId: 1,
+        blogPostTitle: "Industry Trends: The Future of Industrial Enclosures",
+        status: "approved",
+        createdAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
+      },
+      {
+        id: 2,
+        author: "Jane Doe",
+        email: "jane@example.com",
+        content: "I have a question about the specific applications. Do you have any examples for use in marine environments?",
+        blogPostId: 1,
+        blogPostTitle: "Industry Trends: The Future of Industrial Enclosures",
+        status: "pending",
+        createdAt: new Date(Date.now() - 86400000), // 1 day ago
+      },
+      {
+        id: 3,
+        author: "spam.bot",
+        email: "spam@example.com",
+        content: "Check out our discount prices at www.spam-example.com!",
+        blogPostId: 2,
+        blogPostTitle: "Custom Enclosure Solutions for Harsh Environments",
+        status: "spam",
+        createdAt: new Date(), // Today
+      }
+    ];
+    
+    res.json(comments);
+  });
+  
   // Auth route for admin (simplified for demo)
   app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;

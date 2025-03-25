@@ -9,6 +9,7 @@ import { Blog, BlogFormData } from "@/lib/types";
 import { useLocation } from "wouter";
 import { slugify } from "@/lib/utils";
 import ImageUpload from "./image-upload";
+import MediaSelector from "./media-selector";
 import SeoSettings from "./seo-settings";
 
 // Form schema with validation
@@ -274,41 +275,18 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                 <div className="h-5 border-r border-gray-300 mx-1"></div>
                 
                 {/* Image Insertion Button - Always Visible */}
-                <div className="relative group">
-                  <button 
-                    type="button" 
-                    className="p-1 bg-blue-100 hover:bg-blue-200 rounded text-blue-700 font-medium" 
-                    title="Insert Image"
-                  >
-                    <i className="fas fa-image mr-1"></i> Insert Image
-                  </button>
-                  
-                  {uploadedImages.length > 0 ? (
-                    <div className="absolute left-0 top-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-2 w-64 hidden group-hover:block z-10">
-                      <p className="text-xs text-gray-500 mb-2">Click on an image to insert it at cursor position:</p>
-                      <div className="max-h-48 overflow-y-auto">
-                        {uploadedImages.map((imageUrl, index) => (
-                          <div 
-                            key={index} 
-                            className="flex items-center p-1 hover:bg-gray-100 rounded cursor-pointer"
-                            onClick={() => insertImageInContent(imageUrl)}
-                          >
-                            <img 
-                              src={imageUrl} 
-                              alt={`Image ${index + 1}`} 
-                              className="w-10 h-10 object-cover rounded mr-2"
-                            />
-                            <span className="text-sm truncate">Insert Image {index + 1}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="absolute left-0 top-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-2 w-64 hidden group-hover:block z-10">
-                      <p className="text-xs text-orange-500">Upload images first using the "Images" section below</p>
-                    </div>
-                  )}
-                </div>
+                <MediaSelector 
+                  onImageSelect={insertImageInContent} 
+                  triggerButton={
+                    <button 
+                      type="button" 
+                      className="p-1 bg-blue-100 hover:bg-blue-200 rounded text-blue-700 font-medium" 
+                      title="Insert Image from Media Library"
+                    >
+                      <i className="fas fa-image mr-1"></i> Insert Image
+                    </button>
+                  }
+                />
               </div>
               <textarea
                 value={content}
