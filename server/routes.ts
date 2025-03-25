@@ -76,7 +76,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/blogs", async (req, res) => {
     try {
-      const validatedData = insertBlogPostSchema.parse(req.body);
+      const data = {
+        ...req.body,
+        publishDate: req.body.publishDate ? new Date(req.body.publishDate) : new Date()
+      };
+      const validatedData = insertBlogPostSchema.parse(data);
       const newBlog = await storage.createBlogPost(validatedData);
       res.status(201).json(newBlog);
     } catch (error) {
