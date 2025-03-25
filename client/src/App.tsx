@@ -21,6 +21,7 @@ import AdminCategories from "@/pages/admin/categories/index";
 import AdminUsers from "@/pages/admin/users/index";
 import AdminMedia from "@/pages/admin/media/index";
 import AdminSettings from "@/pages/admin/settings/index";
+import AdminComments from "@/pages/admin/comments/index";
 
 function Router() {
   return (
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/admin/users" component={AdminUsers} />
       <Route path="/admin/media" component={AdminMedia} />
       <Route path="/admin/settings" component={AdminSettings} />
+      <Route path="/admin/comments" component={AdminComments} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
