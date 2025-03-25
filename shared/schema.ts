@@ -70,8 +70,18 @@ export const services = pgTable("services", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description").notNull(),
+  fullDescription: text("full_description"), // Detailed content for service page
   image: text("image"),
   featured: boolean("featured").default(false),
+  parentId: integer("parent_id"), // For hierarchical structure: null for main services, populated for sub-services
+  order: integer("order").default(0), // For ordering services on the page
+  features: json("features").$type<string[]>().default([]), // Key features of this service
+  benefits: json("benefits").$type<string[]>().default([]), // Benefits of this service
+  applications: json("applications").$type<string[]>().default([]), // Where this service/product applies
+  specifications: json("specifications").$type<Record<string, string>>().default({}), // Technical specs as key-value pairs
+  relatedServices: json("related_services").$type<number[]>().default([]), // IDs of related services
+  metaTitle: text("meta_title"), // SEO meta title
+  metaDescription: text("meta_description"), // SEO meta description
   createdAt: timestamp("created_at").defaultNow(),
 });
 

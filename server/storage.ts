@@ -34,6 +34,9 @@ export interface IStorage {
   getServiceById(id: number): Promise<Service | undefined>;
   getServiceBySlug(slug: string): Promise<Service | undefined>;
   getFeaturedServices(): Promise<Service[]>;
+  getServicesByParentId(parentId: number | null): Promise<Service[]>; // Get all child services 
+  getServiceHierarchy(): Promise<Service[]>; // Get services with their children
+  getRelatedServices(serviceId: number): Promise<Service[]>; // Get related services
   createService(service: InsertService): Promise<Service>;
   updateService(id: number, service: Partial<InsertService>): Promise<Service | undefined>;
   deleteService(id: number): Promise<boolean>;
@@ -203,6 +206,45 @@ export class MemStorage implements IStorage {
   
   async getFeaturedServices(): Promise<Service[]> {
     return Array.from(this.services.values()).filter(service => service.featured);
+  }
+  
+  async getServicesByParentId(parentId: number | null): Promise<Service[]> {
+    return Array.from(this.services.values()).filter(service => {
+      if (parentId === null) {
+        return service.parentId === undefined || service.parentId === null;
+      }
+      return service.parentId === parentId;
+    }).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+  
+  async getServiceHierarchy(): Promise<Service[]> {
+    // Get all top-level services (no parentId)
+    const mainServices = await this.getServicesByParentId(null);
+    
+    // For each main service, attach children
+    for (const service of mainServices) {
+      const children = await this.getServicesByParentId(service.id);
+      (service as any).children = children;
+    }
+    
+    return mainServices;
+  }
+  
+  async getRelatedServices(serviceId: number): Promise<Service[]> {
+    const service = await this.getServiceById(serviceId);
+    if (!service || !service.relatedServices || !Array.isArray(service.relatedServices)) {
+      return [];
+    }
+    
+    const relatedServices: Service[] = [];
+    for (const relatedId of service.relatedServices) {
+      const relatedService = await this.getServiceById(relatedId);
+      if (relatedService) {
+        relatedServices.push(relatedService);
+      }
+    }
+    
+    return relatedServices;
   }
   
   async createService(insertService: InsertService): Promise<Service> {

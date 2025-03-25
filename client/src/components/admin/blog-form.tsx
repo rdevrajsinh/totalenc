@@ -15,7 +15,7 @@ import SeoSettings from "./seo-settings";
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
-  content: z.string().min(10, "Content must be at least 10 characters"),
+  content: z.string(), // No minimum validation to allow for HTML content with images
   excerpt: z.string().optional(),
   author: z.string().default("Admin"),
   status: z.enum(["draft", "published", "scheduled"]),
@@ -231,6 +231,20 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
             <label className="block text-gray-700 font-medium mb-2">
               Content
             </label>
+            
+            {/* Instructions for using the text-image pattern */}
+            <div className="bg-blue-50 p-3 mb-3 rounded-md border border-blue-200 text-sm">
+              <h4 className="font-bold text-blue-700 mb-1">How to create text-image-text pattern:</h4>
+              <ol className="list-decimal pl-5 text-blue-700">
+                <li>Write your first paragraph of text</li>
+                <li>Position your cursor where you want the image to appear</li>
+                <li>Click the <strong>"Insert Image"</strong> button and select an image</li>
+                <li>Continue writing text after the image</li>
+                <li>Repeat for multiple images</li>
+              </ol>
+              <p className="mt-2 text-blue-600 italic">You can also insert images directly from the gallery below</p>
+            </div>
+            
             <div className="border border-gray-300 rounded-md overflow-hidden">
               <div className="bg-gray-100 border-b border-gray-300 px-3 py-2 flex flex-wrap gap-2">
                 <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Bold">
@@ -258,17 +272,20 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                   <i className="fas fa-code"></i>
                 </button>
                 <div className="h-5 border-r border-gray-300 mx-1"></div>
-                {uploadedImages.length > 0 && (
-                  <div className="relative group">
-                    <button 
-                      type="button" 
-                      className="p-1 hover:bg-gray-200 rounded" 
-                      title="Insert Image"
-                    >
-                      <i className="fas fa-image"></i>
-                    </button>
-                    <div className="absolute left-0 top-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-2 w-48 hidden group-hover:block z-10">
-                      <p className="text-xs text-gray-500 mb-2">Insert an image:</p>
+                
+                {/* Image Insertion Button - Always Visible */}
+                <div className="relative group">
+                  <button 
+                    type="button" 
+                    className="p-1 bg-blue-100 hover:bg-blue-200 rounded text-blue-700 font-medium" 
+                    title="Insert Image"
+                  >
+                    <i className="fas fa-image mr-1"></i> Insert Image
+                  </button>
+                  
+                  {uploadedImages.length > 0 ? (
+                    <div className="absolute left-0 top-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-2 w-64 hidden group-hover:block z-10">
+                      <p className="text-xs text-gray-500 mb-2">Click on an image to insert it at cursor position:</p>
                       <div className="max-h-48 overflow-y-auto">
                         {uploadedImages.map((imageUrl, index) => (
                           <div 
@@ -279,15 +296,19 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                             <img 
                               src={imageUrl} 
                               alt={`Image ${index + 1}`} 
-                              className="w-8 h-8 object-cover rounded mr-2"
+                              className="w-10 h-10 object-cover rounded mr-2"
                             />
-                            <span className="text-xs truncate">Image {index + 1}</span>
+                            <span className="text-sm truncate">Insert Image {index + 1}</span>
                           </div>
                         ))}
                       </div>
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="absolute left-0 top-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 p-2 w-64 hidden group-hover:block z-10">
+                      <p className="text-xs text-orange-500">Upload images first using the "Images" section below</p>
+                    </div>
+                  )}
+                </div>
               </div>
               <textarea
                 value={content}
