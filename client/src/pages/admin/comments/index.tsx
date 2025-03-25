@@ -80,8 +80,18 @@ export default function AdminComments() {
   // Approve comment mutation
   const approveComment = useMutation({
     mutationFn: async (id: number) => {
-      // This would be an actual API call in a real implementation
-      return { success: true };
+      const response = await fetch(`/api/comments/${id}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to approve comment');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/comments'] });
@@ -89,14 +99,31 @@ export default function AdminComments() {
         title: "Comment Approved",
         description: "The comment has been approved and published.",
       });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to approve comment: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
+      });
     }
   });
   
   // Reject comment mutation
   const rejectComment = useMutation({
     mutationFn: async (id: number) => {
-      // This would be an actual API call in a real implementation
-      return { success: true };
+      const response = await fetch(`/api/comments/${id}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to reject comment');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/comments'] });
@@ -104,20 +131,41 @@ export default function AdminComments() {
         title: "Comment Rejected",
         description: "The comment has been rejected and marked as spam.",
       });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to reject comment: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
+      });
     }
   });
   
   // Delete comment mutation
   const deleteComment = useMutation({
     mutationFn: async (id: number) => {
-      // This would be an actual API call in a real implementation
-      return { success: true };
+      const response = await fetch(`/api/comments/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete comment');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/comments'] });
       toast({
         title: "Comment Deleted",
         description: "The comment has been permanently deleted.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete comment: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
       });
     }
   });

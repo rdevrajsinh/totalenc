@@ -353,43 +353,227 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Comments API Routes
-  app.get("/api/comments", (req, res) => {
-    // Normally, this would fetch from a database
-    // For now we'll return dummy data for the UI to use
-    const comments = [
-      {
-        id: 1,
-        author: "John Smith",
-        email: "john@example.com",
-        content: "Great article! This has been very helpful for our industrial project.",
-        blogPostId: 1,
-        blogPostTitle: "Industry Trends: The Future of Industrial Enclosures",
-        status: "approved",
-        createdAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
-      },
-      {
-        id: 2,
-        author: "Jane Doe",
-        email: "jane@example.com",
-        content: "I have a question about the specific applications. Do you have any examples for use in marine environments?",
-        blogPostId: 1,
-        blogPostTitle: "Industry Trends: The Future of Industrial Enclosures",
-        status: "pending",
-        createdAt: new Date(Date.now() - 86400000), // 1 day ago
-      },
-      {
-        id: 3,
-        author: "spam.bot",
-        email: "spam@example.com",
-        content: "Check out our discount prices at www.spam-example.com!",
-        blogPostId: 2,
-        blogPostTitle: "Custom Enclosure Solutions for Harsh Environments",
-        status: "spam",
-        createdAt: new Date(), // Today
-      }
-    ];
+  // Mock comments database (would be in storage.ts in a real implementation)
+  let comments = [
+    {
+      id: 1,
+      author: "John Smith",
+      email: "john@example.com",
+      content: "Great article! This has been very helpful for our industrial project.",
+      blogPostId: 1,
+      blogPostTitle: "Industry Trends: The Future of Industrial Enclosures",
+      status: "approved",
+      createdAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
+    },
+    {
+      id: 2,
+      author: "Jane Doe",
+      email: "jane@example.com",
+      content: "I have a question about the specific applications. Do you have any examples for use in marine environments?",
+      blogPostId: 1,
+      blogPostTitle: "Industry Trends: The Future of Industrial Enclosures",
+      status: "pending",
+      createdAt: new Date(Date.now() - 86400000), // 1 day ago
+    },
+    {
+      id: 3,
+      author: "spam.bot",
+      email: "spam@example.com",
+      content: "Check out our discount prices at www.spam-example.com!",
+      blogPostId: 2,
+      blogPostTitle: "Custom Enclosure Solutions for Harsh Environments",
+      status: "spam",
+      createdAt: new Date(), // Today
+    }
+  ];
+  
+  // Media Management Routes
+  // Media items with status for approval workflow
+  let mediaItems = [];
+
+  // Automatically add existing media from uploads directory to media items
+  const initializeMediaItems = () => {
+    const uploadsPath = path.resolve(process.cwd(), "dist/public/uploads");
     
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadsPath)) {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+      return;
+    }
+    
+    try {
+      const files = fs.readdirSync(uploadsPath);
+      mediaItems = files.map((filename, index) => {
+        const filePath = path.join(uploadsPath, filename);
+        const stats = fs.statSync(filePath);
+        const relativePath = `/uploads/${filename}`;
+        
+        return {
+          id: index + 1,
+          name: filename,
+          url: relativePath,
+          type: path.extname(filename).toLowerCase() === '.png' 
+            ? 'image/png' 
+            : path.extname(filename).toLowerCase() === '.gif'
+              ? 'image/gif'
+              : 'image/jpeg',
+          size: stats.size,
+          uploadedAt: stats.mtime,
+          status: 'approved' // Default status for existing files
+        };
+      });
+    } catch (error) {
+      console.error("Error initializing media items:", error);
+    }
+  };
+  
+  // Initialize media items
+  initializeMediaItems();
+  
+  // Get all media items
+  app.get("/api/media", (req, res) => {
+    res.json(mediaItems);
+  });
+  
+  // Get a single media item
+  app.get("/api/media/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid media ID" });
+    }
+    
+    const mediaItem = mediaItems.find(item => item.id === id);
+    if (!mediaItem) {
+      return res.status(404).json({ message: "Media item not found" });
+    }
+    
+    res.json(mediaItem);
+  });
+  
+  // Update a media item
+  app.patch("/api/media/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid media ID" });
+    }
+    
+    const mediaIndex = mediaItems.findIndex(item => item.id === id);
+    if (mediaIndex === -1) {
+      return res.status(404).json({ message: "Media item not found" });
+    }
+    
+    const { name, status } = req.body;
+    
+    // Update only the provided fields
+    if (name) {
+      mediaItems[mediaIndex].name = name;
+    }
+    
+    if (status) {
+      mediaItems[mediaIndex].status = status;
+    }
+    
+    res.json(mediaItems[mediaIndex]);
+  });
+  
+  // Delete a media item
+  app.delete("/api/media/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid media ID" });
+    }
+    
+    const mediaIndex = mediaItems.findIndex(item => item.id === id);
+    if (mediaIndex === -1) {
+      return res.status(404).json({ message: "Media item not found" });
+    }
+    
+    const mediaItem = mediaItems[mediaIndex];
+    
+    // Check if the file exists in the filesystem
+    const filePath = path.resolve(process.cwd(), "dist/public" + mediaItem.url);
+    if (fs.existsSync(filePath)) {
+      try {
+        // Delete the file from the filesystem
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.error("Error deleting file:", error);
+        return res.status(500).json({ message: "Failed to delete file from filesystem" });
+      }
+    }
+    
+    // Remove the item from the array
+    mediaItems = mediaItems.filter(item => item.id !== id);
+    
+    res.json({ success: true });
+  });
+  
+  // Get all comments
+  app.get("/api/comments", (req, res) => {
     res.json(comments);
+  });
+  
+  // Get a single comment
+  app.get("/api/comments/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid comment ID" });
+    }
+    
+    const comment = comments.find(c => c.id === id);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    
+    res.json(comment);
+  });
+  
+  // Approve a comment
+  app.post("/api/comments/:id/approve", (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid comment ID" });
+    }
+    
+    const commentIndex = comments.findIndex(c => c.id === id);
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    
+    comments[commentIndex].status = "approved";
+    res.json({ success: true, comment: comments[commentIndex] });
+  });
+  
+  // Reject a comment (mark as spam)
+  app.post("/api/comments/:id/reject", (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid comment ID" });
+    }
+    
+    const commentIndex = comments.findIndex(c => c.id === id);
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    
+    comments[commentIndex].status = "spam";
+    res.json({ success: true, comment: comments[commentIndex] });
+  });
+  
+  // Delete a comment
+  app.delete("/api/comments/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid comment ID" });
+    }
+    
+    const commentIndex = comments.findIndex(c => c.id === id);
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    
+    comments = comments.filter(c => c.id !== id);
+    res.json({ success: true });
   });
   
   // Auth route for admin (simplified for demo)
