@@ -48,17 +48,12 @@ export interface IStorage {
   deleteContactMessage(id: number): Promise<boolean>;
 }
 
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-
-export class PostgresStorage implements IStorage {
-  private db: any;
-  
-  constructor() {
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-    });
-    this.db = drizzle(pool);
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private blogPosts: Map<number, BlogPost>;
+  private products: Map<number, Product>;
+  private services: Map<number, Service>;
+  private contactMessages: Map<number, ContactMessage>;
   
   currentId: number;
   currentBlogId: number;
