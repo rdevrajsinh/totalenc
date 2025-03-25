@@ -40,7 +40,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
   const [content, setContent] = useState(blog?.content || "");
   const [uploadedImages, setUploadedImages] = useState<string[]>(blog?.images || []);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(blog?.categories || []);
-  
+
   // Available categories (in a real app, this would come from an API)
   const availableCategories = [
     "Industrial Solutions",
@@ -72,7 +72,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
       metaDescription: blog?.metaDescription || ""
     },
   });
-  
+
   // When title changes, generate a slug automatically (if not editing)
   const watchTitle = form.watch("title");
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
       form.setValue("slug", slugify(watchTitle));
     }
   }, [watchTitle, form, isEditing]);
-  
+
   // Mutations for creating or updating a blog post
   const createMutation = useMutation({
     mutationFn: async (data: BlogFormData) => {
@@ -103,10 +103,14 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
       });
     }
   });
-  
+
   const updateMutation = useMutation({
     mutationFn: async (data: BlogFormData) => {
-      const response = await apiRequest("PUT", `/api/blogs/${blog?.id}`, data);
+      const formattedData = {
+        ...data,
+        publishDate: new Date(data.publishDate)
+      };
+      const response = await apiRequest("PUT", `/api/blogs/${blog?.id}`, formattedData);
       return response.json();
     },
     onSuccess: () => {
@@ -125,12 +129,12 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
       });
     }
   });
-  
+
   // Handle form submission
   const onSubmit = (data: BlogFormData) => {
     // Before submitting form, ensure content field is updated with the latest HTML content
     form.setValue("content", content);
-    
+
     // Process the tags from comma-separated to array
     const processedData = { 
       ...data,
@@ -139,44 +143,44 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
       categories: selectedCategories,
       tags: data.tags ? data.tags.split(",").map(tag => tag.trim()) : []
     };
-    
+
     if (isEditing && blog) {
       updateMutation.mutate(processedData);
     } else {
       createMutation.mutate(processedData);
     }
   };
-  
+
   // Handle image upload completion
   const handleImagesUploaded = (urls: string[]) => {
     setUploadedImages(prev => [...prev, ...urls]);
     form.setValue("images", [...uploadedImages, ...urls]);
   };
-  
+
   // Handle inline image insertion
   const insertImageInContent = (imageUrl: string) => {
     // Get current cursor position
     const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
     if (!textarea) return;
-    
+
     const cursorPosition = textarea.selectionStart;
     const textBefore = content.substring(0, cursorPosition);
     const textAfter = content.substring(cursorPosition);
-    
+
     // Insert image HTML tag at cursor position
     const imageTag = `<img src="${imageUrl}" alt="Blog image" class="max-w-full h-auto my-4 rounded-md" />`;
     const newContent = textBefore + imageTag + textAfter;
-    
+
     setContent(newContent);
   };
-  
+
   // Handle image removal
   const handleRemoveImage = (indexToRemove: number) => {
     const updatedImages = uploadedImages.filter((_, index) => index !== indexToRemove);
     setUploadedImages(updatedImages);
     form.setValue("images", updatedImages);
   };
-  
+
   // Handle category selection
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories(prev => {
@@ -207,7 +211,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.title.message}</p>
             )}
           </div>
-          
+
           {/* Slug Field */}
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2" htmlFor="slug">
@@ -226,13 +230,13 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.slug.message}</p>
             )}
           </div>
-          
+
           {/* Rich Text Editor */}
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">
               Content
             </label>
-            
+
             {/* Instructions for using the text-image pattern */}
             <div className="bg-blue-50 p-3 mb-3 rounded-md border border-blue-200 text-sm">
               <h4 className="font-bold text-blue-700 mb-1">How to create text-image-text pattern:</h4>
@@ -245,7 +249,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
               </ol>
               <p className="mt-2 text-blue-600 italic">You can also insert images directly from the gallery below</p>
             </div>
-            
+
             <div className="border border-gray-300 rounded-md overflow-hidden">
               <div className="bg-gray-100 border-b border-gray-300 px-3 py-2 flex flex-wrap gap-2">
                 <button type="button" className="p-1 hover:bg-gray-200 rounded" title="Bold">
@@ -273,7 +277,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                   <i className="fas fa-code"></i>
                 </button>
                 <div className="h-5 border-r border-gray-300 mx-1"></div>
-                
+
                 {/* Image Insertion Button - Always Visible */}
                 <MediaSelector 
                   onImageSelect={insertImageInContent} 
@@ -299,7 +303,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.content.message}</p>
             )}
           </div>
-          
+
           {/* Excerpt Field */}
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2" htmlFor="excerpt">
@@ -316,14 +320,14 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.excerpt.message}</p>
             )}
           </div>
-          
+
           {/* Image Upload */}
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">
               Images
             </label>
             <ImageUpload onUploadComplete={handleImagesUploaded} />
-            
+
             {/* Uploaded Images Preview */}
             {uploadedImages.length > 0 && (
               <div className="mt-4 grid grid-cols-3 gap-4">
@@ -358,13 +362,13 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
             )}
           </div>
         </div>
-        
+
         {/* Sidebar Settings */}
         <div className="lg:col-span-1">
           {/* Publishing Options */}
           <div className="bg-gray-50 rounded-md p-4 mb-4">
             <h4 className="font-bold text-gray-700 mb-3">Publishing Options</h4>
-            
+
             <div className="mb-3">
               <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="status">
                 Status
@@ -379,7 +383,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                 <option value="scheduled">Scheduled</option>
               </select>
             </div>
-            
+
             <div className="mb-3">
               <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="publishDate">
                 Publish Date
@@ -391,7 +395,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f47920]"
               />
             </div>
-            
+
             <div>
               <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="author">
                 Author
@@ -403,11 +407,11 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
               />
             </div>
           </div>
-          
+
           {/* Categories & Tags */}
           <div className="bg-gray-50 rounded-md p-4 mb-4">
             <h4 className="font-bold text-gray-700 mb-3">Categories & Tags</h4>
-            
+
             <div className="mb-3">
               <label className="block text-gray-700 text-sm font-medium mb-1">
                 Categories
@@ -427,7 +431,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                 ))}
               </div>
             </div>
-            
+
             <div>
               <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor="tags">
                 Tags
@@ -441,7 +445,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
               <div className="text-xs text-gray-500 mt-1">Separate tags with commas</div>
             </div>
           </div>
-          
+
           {/* SEO Settings */}
           <SeoSettings 
             metaTitle={form.watch("metaTitle")}
@@ -451,7 +455,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
           />
         </div>
       </div>
-      
+
       <div className="flex justify-between">
         <button 
           type="button" 
@@ -460,7 +464,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
         >
           Cancel
         </button>
-        
+
         <div>
           <button 
             type="button" 
