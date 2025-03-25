@@ -10,6 +10,7 @@ import BlogIndex from "@/pages/blog/index";
 import BlogDetail from "@/pages/blog/[id]";
 import ProductsPage from "@/pages/products/index";
 import ServicesPage from "@/pages/services";
+import ServiceDetail from "@/pages/services/[slug]";
 import CaseStudiesPage from "@/pages/case-studies";
 import AdminDashboard from "@/pages/admin/index";
 import AdminLogin from "@/pages/admin/login";
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/blog/:id" component={BlogDetail} />
       <Route path="/products" component={ProductsPage} />
       <Route path="/services" component={ServicesPage} />
+      <Route path="/services/:slug" component={ServiceDetail} />
       <Route path="/case-studies" component={CaseStudiesPage} />
 
       {/* Admin Routes */}

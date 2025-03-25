@@ -71,9 +71,18 @@ export interface Service {
   name: string;
   slug: string;
   description: string;
+  fullDescription?: string;
   image?: string;
   featured: boolean;
   createdAt: string | Date;
+  parentId?: number | null;
+  order?: number;
+  metaTitle?: string;
+  metaDescription?: string;
+  features?: string[];
+  benefits?: string[];
+  relatedServices?: number[];
+  children?: Service[]; // Used for hierarchical display
 }
 
 // Contact form types
