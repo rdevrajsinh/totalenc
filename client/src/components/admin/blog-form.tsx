@@ -108,7 +108,7 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
     mutationFn: async (data: BlogFormData) => {
       const formattedData = {
         ...data,
-        publishDate: new Date(data.publishDate)
+        publishDate: data.publishDate ? new Date(data.publishDate).toISOString() : new Date().toISOString()
       };
       const response = await apiRequest("PUT", `/api/blogs/${blog?.id}`, formattedData);
       return response.json();
