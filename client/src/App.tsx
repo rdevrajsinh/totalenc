@@ -17,6 +17,10 @@ import AdminLogin from "@/pages/admin/login";
 import AdminBlogs from "@/pages/admin/blogs/index";
 import AdminNewBlog from "@/pages/admin/blogs/new";
 import AdminEditBlog from "@/pages/admin/blogs/[id]";
+import AdminCategories from "@/pages/admin/categories/index";
+import AdminUsers from "@/pages/admin/users/index";
+import AdminMedia from "@/pages/admin/media/index";
+import AdminSettings from "@/pages/admin/settings/index";
 
 function Router() {
   return (
@@ -37,6 +41,10 @@ function Router() {
       <Route path="/admin/blogs" component={AdminBlogs} />
       <Route path="/admin/blogs/new" component={AdminNewBlog} />
       <Route path="/admin/blogs/:id" component={AdminEditBlog} />
+      <Route path="/admin/categories" component={AdminCategories} />
+      <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/admin/media" component={AdminMedia} />
+      <Route path="/admin/settings" component={AdminSettings} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
