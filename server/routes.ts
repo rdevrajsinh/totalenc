@@ -6,18 +6,19 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
+import express from 'express';
 
 // Setup file upload with multer
 const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
       const uploadPath = path.resolve(process.cwd(), "dist/public/uploads");
-      
+
       // Create directory if it doesn't exist
       if (!fs.existsSync(uploadPath)) {
         fs.mkdirSync(uploadPath, { recursive: true });
       }
-      
+
       cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
@@ -62,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return res.json(blogBySlug);
       }
-      
+
       const blog = await storage.getBlogPostById(id);
       if (!blog) {
         return res.status(404).json({ message: "Blog post not found" });
@@ -98,14 +99,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid blog ID" });
       }
-      
+
       const validatedData = insertBlogPostSchema.partial().parse(req.body);
       const updatedBlog = await storage.updateBlogPost(id, validatedData);
-      
+
       if (!updatedBlog) {
         return res.status(404).json({ message: "Blog post not found" });
       }
-      
+
       res.json(updatedBlog);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -122,12 +123,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid blog ID" });
       }
-      
+
       const success = await storage.deleteBlogPost(id);
       if (!success) {
         return res.status(404).json({ message: "Blog post not found" });
       }
-      
+
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting blog:", error);
@@ -142,12 +143,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
       }
-      
+
       const fileUrls = files.map(file => {
         const relativePath = file.path.split("public")[1].replace(/\\/g, "/");
         return relativePath;
       });
-      
+
       res.status(201).json({ urls: fileUrls });
     } catch (error) {
       console.error("Error uploading images:", error);
@@ -186,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return res.json(productBySlug);
       }
-      
+
       const product = await storage.getProductById(id);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -218,7 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch featured services" });
     }
   });
-  
+
   app.get("/api/services/hierarchy", async (req, res) => {
     try {
       const serviceHierarchy = await storage.getServiceHierarchy();
@@ -228,14 +229,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch service hierarchy" });
     }
   });
-  
+
   app.get("/api/services/parent/:parentId", async (req, res) => {
     try {
       const parentId = req.params.parentId === "null" ? null : parseInt(req.params.parentId);
       if (req.params.parentId !== "null" && isNaN(parentId)) {
         return res.status(400).json({ message: "Invalid parent ID" });
       }
-      
+
       const subServices = await storage.getServicesByParentId(parentId);
       res.json(subServices);
     } catch (error) {
@@ -243,14 +244,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch sub-services" });
     }
   });
-  
+
   app.get("/api/services/:id/related", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid service ID" });
       }
-      
+
       const relatedServices = await storage.getRelatedServices(id);
       res.json(relatedServices);
     } catch (error) {
@@ -267,29 +268,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!serviceBySlug) {
           return res.status(404).json({ message: "Service not found" });
         }
-        
+
         // Get sub-services if this is a parent service
         const subServices = await storage.getServicesByParentId(serviceBySlug.id);
         const serviceData = {
           ...serviceBySlug,
           subServices: subServices.length > 0 ? subServices : undefined
         };
-        
+
         return res.json(serviceData);
       }
-      
+
       const service = await storage.getServiceById(id);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
-      
+
       // Get sub-services if this is a parent service
       const subServices = await storage.getServicesByParentId(service.id);
       const serviceData = {
         ...service,
         subServices: subServices.length > 0 ? subServices : undefined
       };
-      
+
       res.json(serviceData);
     } catch (error) {
       console.error("Error fetching service:", error);
@@ -315,14 +316,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth route for admin (simplified for demo)
   app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;
-    
+
     try {
       const user = await storage.getUserByUsername(username);
-      
+
       if (!user || user.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
+
       res.json({
         id: user.id,
         username: user.username,
@@ -333,6 +334,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Authentication failed" });
     }
   });
+
+  app.use(express.json());
+  app.use('/uploads', express.static('dist/public/uploads'));
 
   const httpServer = createServer(app);
   return httpServer;
