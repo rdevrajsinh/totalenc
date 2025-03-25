@@ -74,8 +74,10 @@ export class MemStorage implements IStorage {
     this.currentServiceId = 1;
     this.currentContactId = 1;
     
-    // Initialize with sample data
-    this.initSampleData();
+    // Initialize with sample data (using Promise to handle async operations)
+    this.initSampleData().catch(err => {
+      console.error("Error initializing sample data:", err);
+    });
   }
 
   // User operations
@@ -311,39 +313,283 @@ export class MemStorage implements IStorage {
   }
   
   // Helper to initialize with sample data
-  private initSampleData() {
+  private async initSampleData() {
     // Create admin user
     this.createUser({
       username: "admin",
       password: "admin123"
     });
     
-    // Create sample services
-    const serviceData: InsertService[] = [
+    // Create main services
+    const mainServices: InsertService[] = [
       {
         name: "Standard Enclosures",
         slug: "standard-enclosures",
         description: "Our range of standard enclosures provide robust and reliable solutions for various industrial applications.",
+        fullDescription: "<p>Total Enclosures offers a comprehensive range of standard enclosures designed to meet diverse industrial needs. Our catalog includes various materials, sizes, and protection ratings to ensure you find the perfect solution for your application.</p><p>All our standard enclosures are manufactured to the highest quality standards and undergo rigorous testing to ensure reliability and durability in demanding environments.</p>",
         image: "/images/services/standard-enclosures.jpg",
-        featured: true
+        featured: true,
+        order: 1,
+        metaTitle: "Standard Industrial Enclosures | Total Enclosures",
+        metaDescription: "Browse our comprehensive range of high-quality standard industrial enclosures including metal, stainless steel, and plastic options for various applications."
       },
       {
         name: "Custom Solutions",
         slug: "custom-solutions",
         description: "We design and manufacture bespoke enclosure solutions tailored to your specific requirements and specifications.",
+        fullDescription: "<p>When standard enclosures don't meet your unique requirements, our custom solutions provide the perfect answer. We work closely with you to design and manufacture enclosures that precisely match your specifications.</p><p>Our engineering team combines innovative design with advanced manufacturing techniques to create custom enclosures that optimize functionality, aesthetics, and cost-effectiveness.</p>",
         image: "/images/services/custom-solutions.jpg",
-        featured: true
+        featured: true,
+        order: 2,
+        metaTitle: "Custom Enclosure Solutions | Total Enclosures",
+        metaDescription: "Get custom-designed industrial enclosures tailored to your exact specifications. Our engineering team delivers bespoke solutions for unique applications."
       },
       {
         name: "Modification Services",
         slug: "modification-services",
         description: "Our comprehensive modification services include cutting, drilling, painting, and customizing existing enclosures.",
+        fullDescription: "<p>Our comprehensive modification services transform standard enclosures to meet your specific requirements. Whether you need custom cutouts, special finishes, or additional features, our expert team delivers precise modifications that enhance functionality without compromising integrity.</p><p>We utilize state-of-the-art equipment and techniques to ensure that every modification is completed to exacting standards and tight tolerances.</p>",
         image: "/images/services/modification-services.jpg",
-        featured: true
+        featured: true,
+        order: 3,
+        metaTitle: "Enclosure Modification Services | Total Enclosures",
+        metaDescription: "Professional modification services for industrial enclosures. Customize your enclosures with precision cutting, drilling, painting and more."
       }
     ];
     
-    serviceData.forEach(service => this.createService(service));
+    // Create the main services first
+    const createdMainServices = await Promise.all(
+      mainServices.map(async service => await this.createService(service))
+    );
+    
+    // Create sub-services for Standard Enclosures
+    const standardEnclosuresId = createdMainServices[0].id;
+    const standardSubServices: InsertService[] = [
+      {
+        name: "Metal Enclosures",
+        slug: "metal-enclosures",
+        description: "Durable steel enclosures designed for industrial environments where strength and protection are essential.",
+        fullDescription: "<p>Our metal enclosures provide superior protection for your equipment in demanding industrial environments. Manufactured from high-quality steel, these enclosures offer excellent durability, electromagnetic shielding, and resistance to impact.</p><p>Available in various sizes and configurations, our metal enclosures can be customized with different mounting options, access points, and surface finishes to meet your specific requirements.</p>",
+        image: "/images/services/metal-enclosures.jpg",
+        parentId: standardEnclosuresId,
+        order: 1,
+        features: [
+          "Robust steel construction",
+          "Various IP protection ratings available",
+          "Optional powder coating for enhanced durability",
+          "Multiple mounting options",
+          "Available with different locking mechanisms"
+        ],
+        benefits: [
+          "Superior protection against physical impact",
+          "Excellent EMI/RFI shielding capabilities",
+          "Long service life in industrial environments",
+          "Cost-effective solution for harsh conditions",
+          "Versatile mounting and installation options"
+        ]
+      },
+      {
+        name: "Stainless Steel Enclosures",
+        slug: "stainless-steel-enclosures",
+        description: "Corrosion-resistant enclosures ideal for food processing, pharmaceutical, and outdoor applications.",
+        fullDescription: "<p>Our stainless steel enclosures provide exceptional corrosion resistance and hygienic properties, making them ideal for food processing, pharmaceutical, chemical, and outdoor applications. Manufactured from high-grade 304 or 316L stainless steel, these enclosures maintain their integrity even in the most challenging environments.</p><p>The smooth, easy-to-clean surfaces make these enclosures perfect for applications where regular sanitation is required, while their aesthetic appearance makes them suitable for visible installations.</p>",
+        image: "/images/services/stainless-steel-enclosures.jpg",
+        parentId: standardEnclosuresId,
+        order: 2,
+        features: [
+          "304 or 316L stainless steel construction",
+          "Seamless welded design options",
+          "High IP rating for water and dust protection",
+          "Brushed or polished finish options",
+          "Food-grade silicone gaskets available"
+        ],
+        benefits: [
+          "Exceptional corrosion resistance",
+          "Suitable for washdown environments",
+          "Meets hygiene requirements for food and pharmaceutical applications",
+          "Aesthetic appearance for visible installations",
+          "Extended service life in harsh environments"
+        ]
+      },
+      {
+        name: "Plastic Enclosures",
+        slug: "plastic-enclosures",
+        description: "Lightweight, non-conductive enclosures perfect for electrical applications and corrosive environments.",
+        fullDescription: "<p>Our plastic enclosures offer lightweight, non-conductive solutions ideal for electrical applications and corrosive environments. Manufactured from high-quality ABS, polycarbonate, or fiberglass-reinforced polyester, these enclosures provide excellent insulation properties while resisting chemical damage.</p><p>Their inherent non-corrosive nature makes them perfect for outdoor installations, wastewater treatment facilities, and chemical processing plants. The transparent lid options allow for easy visual inspection without opening the enclosure.</p>",
+        image: "/images/services/plastic-enclosures.jpg",
+        parentId: standardEnclosuresId,
+        order: 3,
+        features: [
+          "UV-resistant materials for outdoor use",
+          "Non-conductive for electrical safety",
+          "Chemical and corrosion resistant",
+          "Transparent lid options available",
+          "Lightweight for easy installation"
+        ],
+        benefits: [
+          "Excellent electrical insulation properties",
+          "No risk of corrosion in harsh environments",
+          "Lower installation costs due to light weight",
+          "UV-stabilized for extended outdoor service life",
+          "Easy modification without specialized tools"
+        ]
+      }
+    ];
+    
+    // Create sub-services for Custom Solutions
+    const customSolutionsId = createdMainServices[1].id;
+    const customSubServices: InsertService[] = [
+      {
+        name: "Custom Design Services",
+        slug: "custom-design-services",
+        description: "Expert engineering and design services to create the perfect enclosure for your unique requirements.",
+        fullDescription: "<p>Our custom design services combine engineering expertise with innovative thinking to create enclosures that perfectly match your unique requirements. We begin with a thorough consultation to understand your needs, constraints, and objectives, then develop detailed designs that optimize functionality, aesthetics, and cost-effectiveness.</p><p>Our engineers utilize advanced CAD software to create precise 3D models and detailed technical drawings, allowing you to visualize and approve the design before manufacturing begins. We consider all aspects of your application, including environmental conditions, access requirements, thermal management, and regulatory compliance.</p>",
+        image: "/images/services/custom-design.jpg",
+        parentId: customSolutionsId,
+        order: 1,
+        features: [
+          "Comprehensive consultation and requirements analysis",
+          "Advanced 3D CAD design and modeling",
+          "Thermal and structural simulation capabilities",
+          "Prototype development and testing",
+          "Complete documentation and manufacturing drawings"
+        ],
+        benefits: [
+          "Enclosures precisely tailored to your application",
+          "Optimization of space, weight, and cost",
+          "Validation of performance before manufacturing",
+          "Seamless integration with existing systems",
+          "Solutions that address unique environmental challenges"
+        ]
+      },
+      {
+        name: "Specialized Materials",
+        slug: "specialized-materials",
+        description: "Enclosures manufactured from specialized materials for extreme environments and unique applications.",
+        fullDescription: "<p>When standard materials aren't sufficient for your challenging application, our specialized materials service provides solutions that can withstand extreme environments. We work with a wide range of advanced materials including composite materials, high-performance alloys, specialty plastics, and custom laminates.</p><p>Whether you need extreme temperature resistance, exceptional chemical compatibility, specialized shielding properties, or ultra-lightweight construction, our engineering team selects and implements the perfect material solution for your enclosure requirements.</p>",
+        image: "/images/services/specialized-materials.jpg",
+        parentId: customSolutionsId,
+        order: 2,
+        features: [
+          "High-temperature resistant alloys",
+          "Composite materials for weight reduction",
+          "Enhanced EMI/RFI shielding materials",
+          "Specialty plastics for chemical resistance",
+          "Antimicrobial materials for healthcare applications"
+        ],
+        benefits: [
+          "Performance in extreme environmental conditions",
+          "Resistance to specific chemicals or contaminants",
+          "Extended service life in harsh applications",
+          "Weight reduction without compromising strength",
+          "Specialized protection for sensitive equipment"
+        ]
+      },
+      {
+        name: "OEM Integration Solutions",
+        slug: "oem-integration-solutions",
+        description: "Custom enclosures designed for seamless integration with your products and manufacturing processes.",
+        fullDescription: "<p>Our OEM Integration Solutions are specifically designed for manufacturers who need enclosures that seamlessly integrate with their products and production processes. We develop custom enclosure solutions that not only protect your components but also enhance your product's functionality, appearance, and brand identity.</p><p>Working closely with your engineering and production teams, we develop enclosures that optimize assembly efficiency, reduce manufacturing costs, and improve the end-user experience. Whether you need a few hundred or thousands of units, we deliver consistent quality and reliable supply to support your production schedule.</p>",
+        image: "/images/services/oem-integration.jpg",
+        parentId: customSolutionsId,
+        order: 3,
+        features: [
+          "Design for Manufacturing (DFM) approach",
+          "Custom mounting and assembly features",
+          "Integration of your branding elements",
+          "Production-friendly design features",
+          "Consistent quality across large production runs"
+        ],
+        benefits: [
+          "Reduced assembly time and complexity",
+          "Enhanced product aesthetics and functionality",
+          "Optimized for your production processes",
+          "Reliable supply chain for continuous production",
+          "Potential cost reduction through design optimization"
+        ]
+      }
+    ];
+    
+    // Create sub-services for Modification Services
+    const modificationServicesId = createdMainServices[2].id;
+    const modificationSubServices: InsertService[] = [
+      {
+        name: "CNC Machining",
+        slug: "cnc-machining",
+        description: "Precision CNC machining services for accurate cutouts, holes, and complex modifications.",
+        fullDescription: "<p>Our precision CNC machining services transform standard enclosures with exact cutouts, holes, and complex modifications to accommodate your specific components. Using advanced CNC technology, we achieve tight tolerances and clean finishes that ensure perfect fit and professional appearance.</p><p>Our capabilities include multi-axis milling, drilling, tapping, and engraving across various materials including steel, aluminum, stainless steel, and plastics. Each modification is programmed from detailed technical drawings or digital files, ensuring precision and repeatability across multiple units.</p>",
+        image: "/images/services/cnc-machining.jpg",
+        parentId: modificationServicesId,
+        order: 1,
+        features: [
+          "Precision cutouts for displays, connectors, and controls",
+          "Exact hole patterns for mounting equipment",
+          "Thread tapping for secure component attachment",
+          "Countersunk holes for flush mounting",
+          "Custom engraving for identification and branding"
+        ],
+        benefits: [
+          "Perfect fit for your components and equipment",
+          "Professional appearance with clean edges and precise dimensions",
+          "Consistent results across multiple enclosures",
+          "Complex modifications that would be difficult to achieve manually",
+          "Reduced installation time with pre-modified enclosures"
+        ]
+      },
+      {
+        name: "Surface Finishing",
+        slug: "surface-finishing",
+        description: "Professional painting, powder coating, and specialized surface treatments for enclosures.",
+        fullDescription: "<p>Our surface finishing services enhance the appearance, durability, and functionality of your enclosures. We offer a comprehensive range of treatments including painting, powder coating, anodizing, plating, and specialty coatings that provide both aesthetic appeal and protective benefits.</p><p>Whether you need a specific color for brand consistency, added corrosion protection, enhanced chemical resistance, or specialized properties like anti-static surfaces, our finishing processes deliver high-quality, long-lasting results that meet industry standards and your exact specifications.</p>",
+        image: "/images/services/surface-finishing.jpg",
+        parentId: modificationServicesId,
+        order: 2,
+        features: [
+          "Custom color matching to your specifications",
+          "Textured finishes for improved grip and appearance",
+          "Chemical-resistant coatings for harsh environments",
+          "Anti-static finishes for sensitive electronics",
+          "UV-resistant treatments for outdoor applications"
+        ],
+        benefits: [
+          "Enhanced aesthetic appearance and brand consistency",
+          "Improved corrosion and chemical resistance",
+          "Extended service life in challenging environments",
+          "Specialized functionality like EMI shielding",
+          "Improved cleanliness and maintenance properties"
+        ]
+      },
+      {
+        name: "Thermal Management",
+        slug: "thermal-management",
+        description: "Installation of cooling systems, vents, and thermal solutions to maintain optimal internal temperatures.",
+        fullDescription: "<p>Our thermal management modifications ensure your sensitive equipment operates at optimal temperatures, preventing overheating and extending component life. We design and implement comprehensive cooling solutions including ventilation systems, fan installations, heat exchangers, air conditioning units, and passive cooling options.</p><p>Each thermal solution is engineered based on heat load calculations, ambient conditions, and equipment specifications to provide efficient temperature control while maintaining appropriate IP protection. Our installations include proper sealing, filtering, and condensation management to ensure reliable operation in various environments.</p>",
+        image: "/images/services/thermal-management.jpg",
+        parentId: modificationServicesId,
+        order: 3,
+        features: [
+          "Filtered ventilation systems with appropriate IP protection",
+          "Fan installation with temperature controllers",
+          "Heat exchanger integration for sealed enclosures",
+          "Air conditioning units for high heat loads",
+          "Thermal analysis and heat load calculations"
+        ],
+        benefits: [
+          "Prevention of equipment overheating and failure",
+          "Extended component life through proper temperature control",
+          "Maintained environmental protection while allowing cooling",
+          "Energy-efficient solutions tailored to actual heat loads",
+          "Reduced maintenance and downtime due to thermal issues"
+        ]
+      }
+    ];
+    
+    // Create all sub-services
+    await Promise.all([
+      ...standardSubServices.map(service => this.createService(service)),
+      ...customSubServices.map(service => this.createService(service)),
+      ...modificationSubServices.map(service => this.createService(service))
+    ]);
     
     // Create sample products
     const productData: InsertProduct[] = [

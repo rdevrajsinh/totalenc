@@ -214,6 +214,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch featured services" });
     }
   });
+  
+  app.get("/api/services/hierarchy", async (req, res) => {
+    try {
+      const serviceHierarchy = await storage.getServiceHierarchy();
+      res.json(serviceHierarchy);
+    } catch (error) {
+      console.error("Error fetching service hierarchy:", error);
+      res.status(500).json({ message: "Failed to fetch service hierarchy" });
+    }
+  });
+  
+  app.get("/api/services/parent/:parentId", async (req, res) => {
+    try {
+      const parentId = req.params.parentId === "null" ? null : parseInt(req.params.parentId);
+      if (req.params.parentId !== "null" && isNaN(parentId)) {
+        return res.status(400).json({ message: "Invalid parent ID" });
+      }
+      
+      const subServices = await storage.getServicesByParentId(parentId);
+      res.json(subServices);
+    } catch (error) {
+      console.error("Error fetching sub-services:", error);
+      res.status(500).json({ message: "Failed to fetch sub-services" });
+    }
+  });
+  
+  app.get("/api/services/:id/related", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+      
+      const relatedServices = await storage.getRelatedServices(id);
+      res.json(relatedServices);
+    } catch (error) {
+      console.error("Error fetching related services:", error);
+      res.status(500).json({ message: "Failed to fetch related services" });
+    }
+  });
 
   app.get("/api/services/:id", async (req, res) => {
     try {
@@ -223,14 +263,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!serviceBySlug) {
           return res.status(404).json({ message: "Service not found" });
         }
-        return res.json(serviceBySlug);
+        
+        // Get sub-services if this is a parent service
+        const subServices = await storage.getServicesByParentId(serviceBySlug.id);
+        const serviceData = {
+          ...serviceBySlug,
+          subServices: subServices.length > 0 ? subServices : undefined
+        };
+        
+        return res.json(serviceData);
       }
       
       const service = await storage.getServiceById(id);
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
-      res.json(service);
+      
+      // Get sub-services if this is a parent service
+      const subServices = await storage.getServicesByParentId(service.id);
+      const serviceData = {
+        ...service,
+        subServices: subServices.length > 0 ? subServices : undefined
+      };
+      
+      res.json(serviceData);
     } catch (error) {
       console.error("Error fetching service:", error);
       res.status(500).json({ message: "Failed to fetch service" });

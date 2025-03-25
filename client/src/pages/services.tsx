@@ -5,10 +5,13 @@ import { getImagePlaceholder } from "@/lib/utils";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import ContactCTA from "@/components/home/contact-cta";
+import { useState } from "react";
+import { Link } from "wouter";
 
 export default function ServicesPage() {
-  const { data: services, isLoading } = useQuery<Service[]>({
-    queryKey: ['/api/services'],
+  // Get service hierarchy instead of flat list
+  const { data: serviceHierarchy, isLoading } = useQuery<Service[]>({
+    queryKey: ['/api/services/hierarchy'],
   });
 
   return (
@@ -51,23 +54,46 @@ export default function ServicesPage() {
                     </div>
                   ))}
                 </div>
-              ) : services && services.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {services.map(service => (
-                    <div key={service.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                      <div 
-                        className="h-64 bg-cover bg-center" 
-                        style={{ backgroundImage: `url('${service.image || getImagePlaceholder('service')}')` }}
-                      ></div>
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-[#002357] mb-3 font-poppins">{service.name}</h3>
-                        <p className="text-gray-600 mb-4">{service.description}</p>
-                        <a href={`/services/${service.slug}`} className="text-[#f47920] hover:text-[#ff8f3e] font-semibold flex items-center">
-                          Learn More <i className="fas fa-arrow-right ml-2"></i>
-                        </a>
+              ) : serviceHierarchy && serviceHierarchy.length > 0 ? (
+                <div>
+                  {/* Main services */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                    {serviceHierarchy.map(service => (
+                      <div key={service.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                        <div 
+                          className="h-64 bg-cover bg-center" 
+                          style={{ backgroundImage: `url('${service.image || getImagePlaceholder('service')}')` }}
+                        ></div>
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-[#002357] mb-3 font-poppins">{service.name}</h3>
+                          <p className="text-gray-600 mb-4">{service.description}</p>
+                          <Link href={`/services/${service.slug}`} className="text-[#f47920] hover:text-[#ff8f3e] font-semibold flex items-center">
+                            Learn More <i className="fas fa-arrow-right ml-2"></i>
+                          </Link>
+                        </div>
+
+                        {/* If this service has children, show a preview */}
+                        {service.children && service.children.length > 0 && (
+                          <div className="px-6 pb-6">
+                            <div className="mt-2 border-t pt-4">
+                              <p className="font-medium text-sm text-gray-700 mb-2">Related Services:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {(service.children as Service[]).map(child => (
+                                  <Link 
+                                    key={child.id}
+                                    href={`/services/${child.slug}`} 
+                                    className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors"
+                                  >
+                                    {child.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-12">
