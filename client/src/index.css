@@ -11,3 +11,37 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  .blog-content {
+    @apply text-gray-800;
+  }
+  
+  .blog-content img {
+    @apply max-w-full h-auto my-6 rounded-md shadow-md mx-auto;
+  }
+  
+  .blog-content p {
+    @apply mb-4 leading-relaxed;
+  }
+  
+  .blog-content h2 {
+    @apply text-2xl font-bold text-[#002357] mt-8 mb-4;
+  }
+  
+  .blog-content h3 {
+    @apply text-xl font-bold text-[#002357] mt-6 mb-3;
+  }
+  
+  .blog-content ul, .blog-content ol {
+    @apply pl-6 mb-4;
+  }
+  
+  .blog-content li {
+    @apply mb-2;
+  }
+  
+  .blog-content blockquote {
+    @apply pl-4 italic border-l-4 border-[#f47920] my-6 py-2 text-gray-700;
+  }
+}

@@ -127,10 +127,13 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
   
   // Handle form submission
   const onSubmit = (data: BlogFormData) => {
+    // Before submitting form, ensure content field is updated with the latest HTML content
+    form.setValue("content", content);
+    
     // Process the tags from comma-separated to array
     const processedData = { 
       ...data,
-      content,
+      content,  // This includes the HTML content with inline images
       images: uploadedImages,
       categories: selectedCategories,
       tags: data.tags ? data.tags.split(",").map(tag => tag.trim()) : []

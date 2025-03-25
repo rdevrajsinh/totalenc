@@ -42,7 +42,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
         </div>
         
         <div 
-          className="prose prose-lg max-w-none mb-8"
+          className="prose prose-lg max-w-none mb-8 blog-content"
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
         
