@@ -290,6 +290,10 @@ export default function BlogForm({ blog, isEditing = false }: BlogFormProps) {
                       <i className="fas fa-image mr-1"></i> Insert Image
                     </button>
                   }
+                  style={{
+                    maxHeight: '400px',  // Set a max height for the container
+                    overflowY: 'auto'    // Enable vertical scrolling
+                  }}
                 />
               </div>
               <textarea
