@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4 font-poppins">Total Enclosures</h3>
+            <h3 className="text-xl font-bold mb-4 font-poppins">Totalenc</h3>
             <p className="mb-4">
               Providing high-quality industrial enclosure solutions for over 25 years. 
               Our commitment to excellence ensures that we deliver products that meet your specific requirements.

@@ -67,8 +67,8 @@ export default function Header() {
       <nav className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="flex items-center">
           <div 
-            className="h-14 w-48 bg-contain bg-no-repeat" 
-            style={{ backgroundImage: `url('https://placehold.co/600x400/002357/FFF?text=Total+Enclosures')` }}
+            className="h-14 w-48 bg-contain bg-no-repeat bg-center" 
+            style={{ backgroundImage: `url('https://totalenc.com/wp-content/uploads/2024/01/logo1.png.webp')` }}
           >
             {/* Logo placeholder */}
           </div>

@@ -17,9 +17,9 @@ export default function About() {
           </div>
           
           <div className="lg:w-1/2">
-            <h2 className="text-3xl font-bold text-[#002357] mb-4 font-poppins">About Total Enclosures</h2>
+            <h2 className="text-3xl font-bold text-[#002357] mb-4 font-poppins">About Totalenc</h2>
             <p className="text-gray-600 mb-4">
-              Total Enclosures has been providing high-quality industrial enclosure solutions 
+              Totalenc has been providing high-quality industrial enclosure solutions 
               for over 25 years. We are dedicated to delivering exceptional products and 
               services to our clients across various industries.
             </p>
