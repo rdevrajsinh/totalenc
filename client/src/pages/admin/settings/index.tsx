@@ -15,10 +15,10 @@ export default function AdminSettings() {
   
   // Mock data for settings
   const [generalSettings, setGeneralSettings] = useState({
-    siteName: "Total Enclosures",
+    siteName: "Totalenc",
     siteDescription: "Premium enclosure solutions for all industries.",
-    siteUrl: "https://totalenclosures.com",
-    email: "info@totalenclosures.com",
+    siteUrl: "https://totalenc.com",
+    email: "info@totalenc.com",
     phone: "+1 (555) 123-4567",
     address: "123 Industrial Lane, Manufacturing City, IN 45678"
   });

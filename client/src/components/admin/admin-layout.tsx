@@ -42,7 +42,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
   return (
     <div className="bg-gray-100 min-h-screen">
       <div className="bg-[#002357] text-white p-4">
-        <h3 className="font-bold text-xl">Total Enclosures Admin Dashboard</h3>
+        <h3 className="font-bold text-xl">Totalenc Admin Dashboard</h3>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-5">
