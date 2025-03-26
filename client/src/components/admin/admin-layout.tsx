@@ -41,8 +41,11 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <div className="bg-[#002357] text-white p-4">
-        <h3 className="font-bold text-xl">Totalenc Admin Dashboard</h3>
+      <div className="bg-[#002357] text-white p-4 flex items-center">
+        <div 
+          className="h-10 w-36 bg-contain bg-no-repeat bg-center" 
+          style={{ backgroundImage: `url('https://totalenc.com/wp-content/uploads/2024/01/logo1.png.webp')` }}
+        />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-5">
